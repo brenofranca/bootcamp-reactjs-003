@@ -6,12 +6,12 @@ import './config/reactotron';
 
 import store from './store';
 
-import Main from './pages/Main';
+import Routes from './routes';
 
 const App = () => (
   <Provider store={store}>
     <GlobalStyle />
-    <Main />
+    <Routes />
   </Provider>
 );
 
