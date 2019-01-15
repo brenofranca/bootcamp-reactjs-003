@@ -1,14 +1,16 @@
-import React, { Fragment } from 'react';
-
+import React from 'react';
+import { Provider } from 'react-redux';
 import GlobalStyle from './styles/global';
+
+import store from './store';
 
 import Main from './pages/Main';
 
 const App = () => (
-  <Fragment>
+  <Provider store={store}>
     <GlobalStyle />
     <Main />
-  </Fragment>
+  </Provider>
 );
 
 export default App;
