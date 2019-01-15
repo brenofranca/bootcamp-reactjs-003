@@ -62,6 +62,7 @@ export const Repository = styled.div`
 
         &.remove {
           background: #c15555;
+          margin-top: 5px;
 
           &:hover {
             background: #ad0404;
@@ -74,6 +75,14 @@ export const Repository = styled.div`
 
           &:hover {
             background: #449044;
+          }
+        }
+
+        &.show {
+          background: #a0a0a5;
+
+          &:hover {
+            background: #77777d;
           }
         }
       }

@@ -40,7 +40,7 @@ const CompareList = ({ repositories, onHandleClickRemove, onHandleClickUpdate })
             <button
               type="button"
               className="update"
-              onClick={() => onHandleClickUpdate(repository)}
+              onClick={() => onHandleClickUpdate(repository.full_name)}
             >
               Atualizar
             </button>

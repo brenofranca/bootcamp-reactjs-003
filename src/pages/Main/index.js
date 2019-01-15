@@ -21,10 +21,10 @@ class Main extends Component {
   handleRepositoryAdd = async (e) => {
     e.preventDefault();
 
-    const { addRepository } = this.props;
+    const { addRepositoryRequest } = this.props;
     const { repositoryInput } = this.state;
 
-    addRepository(repositoryInput);
+    addRepositoryRequest(repositoryInput);
   };
 
   handleRepositoryRemove = async ({ id }) => {
@@ -34,9 +34,9 @@ class Main extends Component {
   };
 
   handleRepositoryUpdate = async (repository) => {
-    const { updateRepository } = this.props;
+    const { updateRepositoryRequest } = this.props;
 
-    updateRepository(repository);
+    updateRepositoryRequest(repository);
   };
 
   render() {
@@ -71,9 +71,9 @@ class Main extends Component {
 }
 
 Main.propTypes = {
-  addRepository: PropTypes.func.isRequired,
+  addRepositoryRequest: PropTypes.func.isRequired,
   removeRepository: PropTypes.func.isRequired,
-  updateRepository: PropTypes.func.isRequired,
+  updateRepositoryRequest: PropTypes.func.isRequired,
   repositories: PropTypes.arrayOf(
     PropTypes.shape({
       id: PropTypes.number,
