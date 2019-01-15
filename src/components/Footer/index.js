@@ -21,7 +21,7 @@ Footer.propTypes = {
 };
 
 const mapStateToProps = state => ({
-  count: state.repositories.length,
+  count: state.repositories.data.length,
 });
 
 export default connect(mapStateToProps)(Footer);

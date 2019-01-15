@@ -11,7 +11,6 @@ import CompareList from '../../components/compare_list';
 
 class Main extends Component {
   state = {
-    loading: false,
     repositoryInput: '',
     repositoryError: false,
   };
@@ -21,10 +20,21 @@ class Main extends Component {
   handleRepositoryAdd = async (e) => {
     e.preventDefault();
 
-    const { addRepositoryRequest } = this.props;
+    const { addRepositoryRequest, repositories } = this.props;
     const { repositoryInput } = this.state;
 
+    if (repositories.data.length > 0) {
+      const repositoryIsAdded = repositories.data.find(item => item.full_name === repositoryInput);
+
+      if (repositoryIsAdded) {
+        this.setState({ repositoryError: true });
+        return;
+      }
+    }
+
     addRepositoryRequest(repositoryInput);
+
+    this.setState({ repositoryError: false, repositoryInput: '' });
   };
 
   handleRepositoryRemove = async ({ id }) => {
@@ -40,7 +50,7 @@ class Main extends Component {
   };
 
   render() {
-    const { loading, repositoryError, repositoryInput } = this.state;
+    const { repositoryError, repositoryInput } = this.state;
 
     const { repositories } = this.props;
 
@@ -56,12 +66,12 @@ class Main extends Component {
             onChange={e => this.setState({ repositoryInput: e.target.value })}
           />
           <button type="submit">
-            {loading ? <i className="fa fa-spinner fa-pulse" /> : 'ADICIONAR'}
+            {repositories.loading ? <i className="fa fa-spinner fa-pulse" /> : 'ADICIONAR'}
           </button>
         </Form>
 
         <CompareList
-          repositories={repositories}
+          repositories={repositories.data}
           onHandleClickRemove={repository => this.handleRepositoryRemove(repository)}
           onHandleClickUpdate={repository => this.handleRepositoryUpdate(repository)}
         />
@@ -74,20 +84,23 @@ Main.propTypes = {
   addRepositoryRequest: PropTypes.func.isRequired,
   removeRepository: PropTypes.func.isRequired,
   updateRepositoryRequest: PropTypes.func.isRequired,
-  repositories: PropTypes.arrayOf(
-    PropTypes.shape({
-      id: PropTypes.number,
-      name: PropTypes.string,
-      owner: PropTypes.shape({
-        login: PropTypes.string,
-        avatar_url: PropTypes.string,
+  repositories: PropTypes.shape({
+    loading: PropTypes.bool.isRequired,
+    data: PropTypes.arrayOf(
+      PropTypes.shape({
+        id: PropTypes.number,
+        name: PropTypes.string,
+        owner: PropTypes.shape({
+          login: PropTypes.string,
+          avatar_url: PropTypes.string,
+        }),
+        stargazers_count: PropTypes.number,
+        forks_count: PropTypes.number,
+        open_issues_count: PropTypes.number,
+        pushed_at: PropTypes.string,
       }),
-      stargazers_count: PropTypes.number,
-      forks_count: PropTypes.number,
-      open_issues_count: PropTypes.number,
-      pushed_at: PropTypes.string,
-    }),
-  ).isRequired,
+    ).isRequired,
+  }).isRequired,
 };
 
 const mapStateToProps = state => ({
