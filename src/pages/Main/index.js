@@ -1,97 +1,48 @@
 import React, { Component } from 'react';
-import moment from 'moment';
+import PropTypes from 'prop-types';
 
-import api from '../../services/api';
-
-import logo from '../../assets/images/logo.png';
+import { connect } from 'react-redux';
+import { bindActionCreators } from 'redux';
+import * as RepositoriesActions from '../../store/actions/repositories';
 
 import { Container, Form } from './styles';
-
+import logo from '../../assets/images/logo.png';
 import CompareList from '../../components/compare_list';
 
-export default class Main extends Component {
+class Main extends Component {
   state = {
     loading: false,
-    repositories: [],
     repositoryInput: '',
     repositoryError: false,
   };
 
-  componentDidMount() {
-    const repositories = JSON.parse(localStorage.getItem('@appReactJs'));
-    if (repositories) {
-      this.setState({ repositories });
-    }
-  }
+  componentDidMount() {}
 
   handleRepositoryAdd = async (e) => {
     e.preventDefault();
 
-    this.setState({ loading: true });
+    const { addRepository } = this.props;
+    const { repositoryInput } = this.state;
 
-    const { repositories, repositoryInput } = this.state;
-
-    try {
-      const { data: repository } = await api.get(`/repos/${repositoryInput}`);
-
-      repository.lastCommit = moment(repository.pushed_at).fromNow();
-
-      const repositoryIsAdded = repositories.find(item => item.id === repository.id);
-
-      if (repositoryIsAdded) {
-        this.setState({ repositoryError: true });
-        return;
-      }
-
-      const newRepositories = [...repositories, repository];
-
-      this.setState({
-        repositoryInput: '',
-        repositoryError: false,
-        repositories: newRepositories,
-      });
-
-      localStorage.setItem('@appReactJs', JSON.stringify(newRepositories));
-    } catch (err) {
-      this.setState({ repositoryError: true });
-    } finally {
-      this.setState({ loading: false });
-    }
+    addRepository(repositoryInput);
   };
 
   handleRepositoryRemove = async ({ id }) => {
-    const { repositories } = this.state;
+    const { removeRepository } = this.props;
 
-    const repositoriesFiltered = repositories.filter(item => item.id !== id);
-
-    this.setState({
-      repositories: [...repositoriesFiltered],
-    });
-
-    localStorage.setItem('@appReactJs', JSON.stringify(repositoriesFiltered));
+    removeRepository(id);
   };
 
   handleRepositoryUpdate = async (repository) => {
-    try {
-      const { repositories } = this.state;
-      const { data } = await api.get(`/repos/${repository.full_name}`);
+    const { updateRepository } = this.props;
 
-      data.lastCommit = moment(data.pushed_at).fromNow();
-
-      const repositoriesUpdateds = repositories.map(item => (item.id === repository.id ? { ...item, ...data } : { ...item }));
-
-      this.setState({
-        repositories: [...repositoriesUpdateds],
-      });
-
-      localStorage.setItem('@appReactJs', JSON.stringify(repositoriesUpdateds));
-    } catch (err) {}
+    updateRepository(repository);
   };
 
   render() {
-    const {
-      loading, repositoryError, repositoryInput, repositories,
-    } = this.state;
+    const { loading, repositoryError, repositoryInput } = this.state;
+
+    const { repositories } = this.props;
 
     return (
       <Container>
@@ -116,3 +67,34 @@ export default class Main extends Component {
     );
   }
 }
+
+Main.propTypes = {
+  addRepository: PropTypes.func.isRequired,
+  removeRepository: PropTypes.func.isRequired,
+  updateRepository: PropTypes.func.isRequired,
+  repositories: PropTypes.arrayOf(
+    PropTypes.shape({
+      id: PropTypes.number,
+      name: PropTypes.string,
+      owner: PropTypes.shape({
+        login: PropTypes.string,
+        avatar_url: PropTypes.string,
+      }),
+      stargazers_count: PropTypes.number,
+      forks_count: PropTypes.number,
+      open_issues_count: PropTypes.number,
+      pushed_at: PropTypes.string,
+    }),
+  ).isRequired,
+};
+
+const mapStateToProps = state => ({
+  repositories: state.repositories,
+});
+
+const mapDispatchToProps = dispatch => bindActionCreators(RepositoriesActions, dispatch);
+
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+)(Main);
