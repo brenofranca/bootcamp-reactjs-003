@@ -1,114 +1,79 @@
 import React, { Component } from 'react';
-import moment from 'moment';
+import PropTypes from 'prop-types';
 
-import api from '../../services/api';
+import { connect } from 'react-redux';
+import { bindActionCreators } from 'redux';
+import * as RepositoriesActions from '../../store/actions/repositories';
 
+import { Container, Form, Error } from './styles';
 import logo from '../../assets/images/logo.png';
-
-import { Container, Form } from './styles';
-
 import CompareList from '../../components/compare_list';
 
-export default class Main extends Component {
+class Main extends Component {
   state = {
-    loading: false,
-    repositories: [],
     repositoryInput: '',
-    repositoryError: false,
   };
 
-  componentDidMount() {
-    const repositories = JSON.parse(localStorage.getItem('@appReactJs'));
-    if (repositories) {
-      this.setState({ repositories });
-    }
-  }
+  componentDidMount() {}
 
   handleRepositoryAdd = async (e) => {
     e.preventDefault();
 
-    this.setState({ loading: true });
+    const { addRepositoryRequest, repositories } = this.props;
+    const { repositoryInput } = this.state;
 
-    const { repositories, repositoryInput } = this.state;
+    if (!repositoryInput) return;
 
-    try {
-      const { data: repository } = await api.get(`/repos/${repositoryInput}`);
-
-      repository.lastCommit = moment(repository.pushed_at).fromNow();
-
-      const repositoryIsAdded = repositories.find(item => item.id === repository.id);
+    if (repositories.data.length > 0) {
+      const repositoryIsAdded = repositories.data.find(item => item.full_name === repositoryInput);
 
       if (repositoryIsAdded) {
-        this.setState({ repositoryError: true });
         return;
       }
-
-      const newRepositories = [...repositories, repository];
-
-      this.setState({
-        repositoryInput: '',
-        repositoryError: false,
-        repositories: newRepositories,
-      });
-
-      localStorage.setItem('@appReactJs', JSON.stringify(newRepositories));
-    } catch (err) {
-      this.setState({ repositoryError: true });
-    } finally {
-      this.setState({ loading: false });
     }
+
+    addRepositoryRequest(repositoryInput);
+
+    this.setState({ repositoryInput: '' });
   };
 
   handleRepositoryRemove = async ({ id }) => {
-    const { repositories } = this.state;
+    const { removeRepository } = this.props;
 
-    const repositoriesFiltered = repositories.filter(item => item.id !== id);
-
-    this.setState({
-      repositories: [...repositoriesFiltered],
-    });
-
-    localStorage.setItem('@appReactJs', JSON.stringify(repositoriesFiltered));
+    removeRepository(id);
   };
 
   handleRepositoryUpdate = async (repository) => {
-    try {
-      const { repositories } = this.state;
-      const { data } = await api.get(`/repos/${repository.full_name}`);
+    const { updateRepositoryRequest } = this.props;
 
-      data.lastCommit = moment(data.pushed_at).fromNow();
-
-      const repositoriesUpdateds = repositories.map(item => (item.id === repository.id ? { ...item, ...data } : { ...item }));
-
-      this.setState({
-        repositories: [...repositoriesUpdateds],
-      });
-
-      localStorage.setItem('@appReactJs', JSON.stringify(repositoriesUpdateds));
-    } catch (err) {}
+    updateRepositoryRequest(repository);
   };
 
   render() {
-    const {
-      loading, repositoryError, repositoryInput, repositories,
-    } = this.state;
+    const { repositoryInput } = this.state;
+
+    const { repositories } = this.props;
 
     return (
       <Container>
         <img src={logo} alt="Github Compare" />
 
-        <Form withError={repositoryError} onSubmit={this.handleRepositoryAdd}>
+        <Form withError={!!repositories.error} onSubmit={this.handleRepositoryAdd}>
           <input
             type="text"
             placeholder="usuário/repositório"
             value={repositoryInput}
             onChange={e => this.setState({ repositoryInput: e.target.value })}
           />
-          <button type="submit">{loading ? <i className="fa fa-spinner fa-pulse" /> : 'OK'}</button>
+          <button type="submit">
+            {repositories.loading ? <i className="fa fa-spinner fa-pulse" /> : 'ADICIONAR'}
+          </button>
         </Form>
 
+        {!!repositories.error && <Error>{repositories.error}</Error>}
+
         <CompareList
-          repositories={repositories}
+          repositories={repositories.data}
           onHandleClickRemove={repository => this.handleRepositoryRemove(repository)}
           onHandleClickUpdate={repository => this.handleRepositoryUpdate(repository)}
         />
@@ -116,3 +81,38 @@ export default class Main extends Component {
     );
   }
 }
+
+Main.propTypes = {
+  addRepositoryRequest: PropTypes.func.isRequired,
+  removeRepository: PropTypes.func.isRequired,
+  updateRepositoryRequest: PropTypes.func.isRequired,
+  repositories: PropTypes.shape({
+    loading: PropTypes.bool.isRequired,
+    data: PropTypes.arrayOf(
+      PropTypes.shape({
+        id: PropTypes.number,
+        name: PropTypes.string,
+        owner: PropTypes.shape({
+          login: PropTypes.string,
+          avatar_url: PropTypes.string,
+        }),
+        stargazers_count: PropTypes.number,
+        forks_count: PropTypes.number,
+        open_issues_count: PropTypes.number,
+        pushed_at: PropTypes.string,
+      }),
+    ).isRequired,
+    error: PropTypes.oneOf([null, PropTypes.string]),
+  }).isRequired,
+};
+
+const mapStateToProps = state => ({
+  repositories: state.repositories,
+});
+
+const mapDispatchToProps = dispatch => bindActionCreators(RepositoriesActions, dispatch);
+
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+)(Main);

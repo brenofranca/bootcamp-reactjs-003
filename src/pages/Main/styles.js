@@ -7,10 +7,24 @@ export const Container = styled.div`
   padding-top: 60px;
 `;
 
+export const Error = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
+  margin-top: 10px;
+  color: #fff;
+  width: 100%;
+  max-width: 500px;
+  background-color: #e00b0b;
+  border-radius: 3px;
+  padding: 10px;
+`;
+
 export const Form = styled.form`
   margin-top: 20px;
   width: 100%;
-  max-width: 400px;
+  max-width: 500px;
   display: flex;
 
   input {
@@ -34,6 +48,7 @@ export const Form = styled.form`
     font-size: 20px;
     font-weight: bold;
     border-radius: 3px;
+    min-width: 150px;
 
     &:hover {
       background: #52d89f;
