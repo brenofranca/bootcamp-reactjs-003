@@ -5,14 +5,13 @@ import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import * as RepositoriesActions from '../../store/actions/repositories';
 
-import { Container, Form } from './styles';
+import { Container, Form, Error } from './styles';
 import logo from '../../assets/images/logo.png';
 import CompareList from '../../components/compare_list';
 
 class Main extends Component {
   state = {
     repositoryInput: '',
-    repositoryError: false,
   };
 
   componentDidMount() {}
@@ -23,18 +22,19 @@ class Main extends Component {
     const { addRepositoryRequest, repositories } = this.props;
     const { repositoryInput } = this.state;
 
+    if (!repositoryInput) return;
+
     if (repositories.data.length > 0) {
       const repositoryIsAdded = repositories.data.find(item => item.full_name === repositoryInput);
 
       if (repositoryIsAdded) {
-        this.setState({ repositoryError: true });
         return;
       }
     }
 
     addRepositoryRequest(repositoryInput);
 
-    this.setState({ repositoryError: false, repositoryInput: '' });
+    this.setState({ repositoryInput: '' });
   };
 
   handleRepositoryRemove = async ({ id }) => {
@@ -50,7 +50,7 @@ class Main extends Component {
   };
 
   render() {
-    const { repositoryError, repositoryInput } = this.state;
+    const { repositoryInput } = this.state;
 
     const { repositories } = this.props;
 
@@ -58,7 +58,7 @@ class Main extends Component {
       <Container>
         <img src={logo} alt="Github Compare" />
 
-        <Form withError={repositoryError} onSubmit={this.handleRepositoryAdd}>
+        <Form withError={!!repositories.error} onSubmit={this.handleRepositoryAdd}>
           <input
             type="text"
             placeholder="usuário/repositório"
@@ -69,6 +69,8 @@ class Main extends Component {
             {repositories.loading ? <i className="fa fa-spinner fa-pulse" /> : 'ADICIONAR'}
           </button>
         </Form>
+
+        {!!repositories.error && <Error>{repositories.error}</Error>}
 
         <CompareList
           repositories={repositories.data}
@@ -100,6 +102,7 @@ Main.propTypes = {
         pushed_at: PropTypes.string,
       }),
     ).isRequired,
+    error: PropTypes.oneOf([null, PropTypes.string]),
   }).isRequired,
 };
 

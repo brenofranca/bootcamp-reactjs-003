@@ -2,7 +2,11 @@ import { call, put } from 'redux-saga/effects';
 import moment from 'moment';
 import api from '../../services/api';
 
-import { addRepositorySuccess, updateRepositorySuccess } from '../actions/repositories';
+import {
+  addRepositorySuccess,
+  updateRepositorySuccess,
+  addOrUpdateRepositoryFailure,
+} from '../actions/repositories';
 
 function* fetchRepository(repository) {
   const { data } = yield call(api.get, `/repos/${repository}`);
@@ -28,13 +32,21 @@ function* fetchRepository(repository) {
 }
 
 export function* addRepository(action) {
-  const data = yield fetchRepository(action.payload.repository);
+  try {
+    const data = yield fetchRepository(action.payload.repository);
 
-  yield put(addRepositorySuccess(data));
+    yield put(addRepositorySuccess(data));
+  } catch (err) {
+    yield put(addOrUpdateRepositoryFailure('Não foi possível buscar o repositório!'));
+  }
 }
 
 export function* updateRepository(action) {
-  const data = yield fetchRepository(action.payload.repository);
+  try {
+    const data = yield fetchRepository(action.payload.repository);
 
-  yield put(updateRepositorySuccess(data));
+    yield put(updateRepositorySuccess(data));
+  } catch (err) {
+    yield put(addOrUpdateRepositoryFailure('Não foi possível atualizar o repositório!'));
+  }
 }

@@ -7,6 +7,20 @@ export const Container = styled.div`
   padding-top: 60px;
 `;
 
+export const Error = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
+  margin-top: 10px;
+  color: #fff;
+  width: 100%;
+  max-width: 500px;
+  background-color: #e00b0b;
+  border-radius: 3px;
+  padding: 10px;
+`;
+
 export const Form = styled.form`
   margin-top: 20px;
   width: 100%;
